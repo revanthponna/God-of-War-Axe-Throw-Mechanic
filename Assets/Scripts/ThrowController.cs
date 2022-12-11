@@ -49,7 +49,7 @@ public class ThrowController : MonoBehaviour
     public Image reticle;
 
     [Space]
-    //Cinemachine
+    // For third person Cinemachine
     public CinemachineFreeLook virtualCamera;
     public CinemachineImpulseSource impulseSource;
 
@@ -57,7 +57,7 @@ public class ThrowController : MonoBehaviour
     void Start()
     {
         Cursor.visible = false;
-
+        // Getting respective components and scripts
         anim = GetComponent<Animator>();
         input = GetComponent<MovementInput>();
         weaponRb = weapon.GetComponent<Rigidbody>();
@@ -76,33 +76,34 @@ public class ThrowController : MonoBehaviour
         else {
             transform.eulerAngles = new Vector3(Mathf.LerpAngle(transform.eulerAngles.x, 0, 0.2f), transform.eulerAngles.y, transform.eulerAngles.z);
         }
-
+        // Setting respective animations
         anim.SetBool("pulling", pulling);
 
         walking = input.Speed > 0;
         anim.SetBool("walking", walking);    
-
+        
+        // Input Controls
         if (Input.GetMouseButtonDown(1) && hasWeapon) {
-            Aim(true, true, 0);
+            Aim(true, true, 0); // Aiming true when right mouse button is held down
         }
 
         if (Input.GetMouseButtonUp(1) && hasWeapon) {
-            Aim(false, true, 0);
+            Aim(false, true, 0); // Aiming false when right mouse button is released
         }
 
         if (hasWeapon) {
             if (aiming && Input.GetMouseButtonDown(0)) {
-                anim.SetTrigger("throw");
+                anim.SetTrigger("throw"); // Setting the animation throw trigger when aiming and left mouse button is clicked
             }
         } else {
             if(Input.GetMouseButtonDown(0)) {
-                WeaponStartPull();
+                WeaponStartPull(); // Start pulling when weapon is thrown, not aiming and left mouse button is clicked
             }
         }
 
         if (pulling) {
             if(returnTime < 1) {
-                weapon.position = GetQuadraticCurvePoint(returnTime, pullPosition, curverPoint.position, hand.position);
+                weapon.position = GetQuadraticCurvePoint(returnTime, pullPosition, curverPoint.position, hand.position); // Getting the middle curve point of the quadratic bezier curve for the axe return 
                 returnTime += Time.deltaTime * 1.5f;
             } else {
                 WeaponCatch();
@@ -110,7 +111,7 @@ public class ThrowController : MonoBehaviour
         }
 
         if (Input.GetKeyDown(KeyCode.R)) {
-            SceneManager.LoadSceneAsync(SceneManager.GetActiveScene().name);
+            SceneManager.LoadSceneAsync(SceneManager.GetActiveScene().name); // Restart scene
         }
     }
     
@@ -118,7 +119,8 @@ public class ThrowController : MonoBehaviour
     {
         if (walking)
             return;
-
+        
+        // Setting the aiming state and respective animation
         aiming = state;
 
         anim.SetBool("aiming", aiming);
@@ -135,7 +137,7 @@ public class ThrowController : MonoBehaviour
         float originalAim = !state ? cameraZoomOffset : 0;
         DOVirtual.Float(originalAim, newAim, 0.5f, CameraOffset).SetDelay(delay);
 
-        // Particle
+        // Particle Effects
         if (state) {
             glowParticle.Play();
         } else {
@@ -150,14 +152,14 @@ public class ThrowController : MonoBehaviour
         hasWeapon = false;
 
         weaponScript.activated = true;
-        weaponRb.isKinematic = false;
+        weaponRb.isKinematic = false; // setting isKinematic to false when the axe is detached from the player
         weaponRb.collisionDetectionMode = CollisionDetectionMode.Continuous;
 
         weapon.parent = null;
-        weapon.eulerAngles = new Vector3(0, -90 + transform.eulerAngles.y, 0);
+        weapon.eulerAngles = new Vector3(0, -90 + transform.eulerAngles.y, 0); // Changing Euler angles of the axe for rotation
         weapon.transform.position += transform.right / 5;
 
-        weaponRb.AddForce(Camera.main.transform.forward * throwPower + transform.up * 2, ForceMode.Impulse);
+        weaponRb.AddForce(Camera.main.transform.forward * throwPower + transform.up * 2, ForceMode.Impulse); // adding force for the throw
 
         // Trail
         trailRenderer.emitting = true;
@@ -205,7 +207,7 @@ public class ThrowController : MonoBehaviour
         float tt = t * t;
         float uu = u * u;
 
-        return (uu * p0) + (2 * u * t * p1) + (tt * p2);
+        return (uu * p0) + (2 * u * t * p1) + (tt * p2); // using the quadratic bezier formula to get the middle curve point of the return arc
     }
 
     void CameraOffset(float offset)
